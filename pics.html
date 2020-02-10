@@ -1,0 +1,48 @@
+<html lang="en">
+<body>
+    <h1>Hello</h1>
+    <input id="input" type="file" webkitdirectory directory multiple>
+    <p id="p1"></p>
+    <button id="filterBtn" style="display: none">Filter</button>
+    <p id="p2"></p>
+    <button id="downloadBtn" style="display: none">Download</button>
+    <p id="p3"></p>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.2.2/jszip.min.js" integrity="sha256-gy5W5/rXWluWXFRvMWFFMVhocfpBe7Tf4SW2WMfjs4E=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.2/dist/FileSaver.min.js"></script>
+    <script>
+        let fileList;
+        let filteredFiles = [];
+
+        document.getElementById("input").addEventListener("change", handleFiles, false);
+        function handleFiles() {
+            fileList = this.files;
+            document.getElementById('p1').innerHTML = `Total: ${this.files.length} elements`;
+            document.getElementById('filterBtn').style.display = 'block';
+        }
+
+        document.getElementById("filterBtn").addEventListener("click", filter, false);
+        function filter(){
+            const newFiles = [...fileList].reduce((acc, cur) =>
+                acc.some(f =>
+                    Math.abs(cur.lastModified - f.lastModified) <= 2000
+                ) ? acc : [...acc, cur]
+            , [])
+            filteredFiles = newFiles;
+            document.getElementById('p2').innerHTML = `Filtered: ${newFiles.length} elements`;
+            document.getElementById('downloadBtn').style.display = 'block';
+        }
+
+        document.getElementById("downloadBtn").addEventListener("click", download, false);
+        function download() {
+            document.getElementById('p3').innerHTML = 'Download is being prepared, please wait ...';
+            var zip = new JSZip();
+            filteredFiles.forEach(file => zip.file(file.name, file))
+            zip.generateAsync({type:"blob"})
+            .then(function(content) {
+                const filesaver = saveAs(content, "filtered_pics.zip");
+            });
+        }
+
+    </script>
+</body>
+</html>
